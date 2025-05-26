@@ -131,14 +131,14 @@ footer {
 }
 
 /* Botões Principais */
-button#btnAlocarPeca, button#btnAdicionarCavalete, button#btnConsultarCavalete {
+button#btnAlocarPeca, button#btnAdicionarCavalete, button#btnConsultarCavalete, button#btnConsultar {
     width: 100%;
     padding: 15px;
     font-size: 1.2em;
     background-color: #28a745; /* Verde */
     margin-top: 10px;
 }
-button#btnAlocarPeca:hover, button#btnAdicionarCavalete:hover, button#btnConsultarCavalete:hover {
+button#btnAlocarPeca:hover, button#btnAdicionarCavalete:hover, button#btnConsultarCavalete:hover, button#btnConsultar:hover {
     background-color: #218838;
 }
 
@@ -154,7 +154,7 @@ button#btnAlocarPeca:hover, button#btnAdicionarCavalete:hover, button#btnConsult
 }
 
 /* Mensagens de Status */
-#mensagemStatus, #mensagemConsulta {
+#mensagemStatus, #mensagemConsulta, #resultadoConsulta {
     margin-top: 15px;
     font-weight: bold;
     padding: 10px;
