@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultar Peça</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <h1>Consultar Localização da Peça</h1>
+        <a href="index.html">Voltar</a>
+    </header>
+    <main>
+        <div id="qr-reader-consulta" style="width: 100%; max-width: 500px;"></div>
+        
+        <section>
+            <label for="pecaIdConsulta">ID da Peça (ou escaneie):</label>
+            <input type="text" id="pecaIdConsulta" placeholder="Digite o ID ou escaneie">
+            <button id="btnEscanearConsulta">Escanear QR da Peça</button>
+            <button id="btnConsultar">Consultar</button>
+        </section>
+        
+        <section>
+            <h2>Resultado da Consulta:</h2>
+            <p id="resultadoConsulta">-</p>
+        </section>
+    </main>
+
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // Lógica específica para consultar peças
+        const pecaIdConsultaInput = document.getElementById('pecaIdConsulta');
+        const btnConsultar = document.getElementById('btnConsultar');
+        const btnEscanearConsulta = document.getElementById('btnEscanearConsulta');
+        const resultadoConsultaP = document.getElementById('resultadoConsulta');
+        const qrReaderConsultaDivId = "qr-reader-consulta";
+        let consultaScanner;
+
+        function exibirResultado(idPeca) {
+            const localizacao = consultarLocalizacaoPeca(idPeca); // Função de main.js
+            if (localizacao) {
+                resultadoConsultaP.textContent = `A peça ${idPeca} está no cavalete: ${localizacao}`;
+            } else {
+                resultadoConsultaP.textContent = `Peça ${idPeca} não encontrada ou não alocada.`;
+            }
+        }
+        
+        function onScanConsultaSuccess(decodedText, decodedResult) {
+            console.log(`Scan result: ${decodedText}`);
+            pecaIdConsultaInput.value = decodedText;
+            if (consultaScanner) {
+                consultaScanner.clear(); // Para a câmera após o scan
+            }
+            exibirResultado(decodedText);
+        }
+
+        function onScanConsultaError(error) {
+            console.warn(`QR error = ${error}`);
+            resultadoConsultaP.textContent = `Erro ao escanear: ${error}`;
+        }
+        
+        btnEscanearConsulta.addEventListener('click', () => {
+            resultadoConsultaP.textContent = 'Aponte a câmera para o QR Code da PEÇA...';
+            if (consultaScanner && consultaScanner.getState() === 2) {
+                 consultaScanner.clear().catch(err => console.error("Erro ao limpar scanner:", err));
+            }
+            consultaScanner = new Html5QrcodeScanner(
+                qrReaderConsultaDivId,
+                { fps: 10, qrbox: { width: 250, height: 250 }, supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA] },
+                false
+            );
+            consultaScanner.render(onScanConsultaSuccess, onScanConsultaError);
+        });
+
+        btnConsultar.addEventListener('click', () => {
+            const idPeca = pecaIdConsultaInput.value.trim();
+            if (idPeca) {
+                exibirResultado(idPeca);
+            } else {
+                resultadoConsultaP.textContent = 'Por favor, insira ou escaneie o ID da peça.';
+            }
+        });
+    </script>
+</body>
+</html>

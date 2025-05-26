@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receber Peça</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        #qr-reader { display: none; } /* Escondido por padrão */
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Receber / Alocar Peça</h1>
+        <a href="index.html">Voltar</a>
+    </header>
+
+    <main class="container">
+        <div class="panel">
+            <h2>Registrar Alocação</h2>
+            <div class="input-group">
+                <label for="etiquetaPecaInput">Etiqueta da Peça:</label>
+                <input type="text" id="etiquetaPecaInput" placeholder="Digite ou escaneie a etiqueta">
+                <button id="btnEscanearPeca">Escanear</button>
+            </div>
+            <div class="input-group">
+                <label for="cavaleteIdInput">ID do Cavalete:</label>
+                <input type="text" id="cavaleteIdInput" placeholder="Digite ou escaneie o cavalete">
+                <button id="btnEscanearCavalete">Escanear</button>
+            </div>
+            <button id="btnAlocarPeca">Alocar Peça</button>
+            <p id="mensagemStatus">Aguardando ação...</p>
+            <div id="qr-reader"></div>
+        </div>
+
+        <div class="panel">
+            <h2>Últimas 15 Alocações</h2>
+            <ul id="listaRecentes">
+                </ul>
+        </div>
+    </main>
+
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="js/main.js"></script>
+    <script src="js/qrcode-scanner.js"></script>
+    <script>
+        const etiquetaInput = document.getElementById('etiquetaPecaInput');
+        const cavaleteInput = document.getElementById('cavaleteIdInput');
+        const btnEscanearPeca = document.getElementById('btnEscanearPeca');
+        const btnEscanearCavalete = document.getElementById('btnEscanearCavalete');
+        const btnAlocarPeca = document.getElementById('btnAlocarPeca');
+        const mensagemStatusP = document.getElementById('mensagemStatus');
+        const qrReaderDiv = document.getElementById('qr-reader');
+        const listaRecentesUl = document.getElementById('listaRecentes');
+        let targetInput = null;
+
+        function carregarRecentes() {
+            const alocacoes = obterAlocacoes();
+            listaRecentesUl.innerHTML = '';
+            const chaves = Object.keys(alocacoes).reverse().slice(0, 15);
+            chaves.forEach(peca => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span><strong>Peça:</strong> ${peca}</span> <span><strong>Cavalete:</strong> ${alocacoes[peca]}</span>`;
+                listaRecentesUl.appendChild(li);
+            });
+        }
+
+        function onScanSuccess(decodedText) {
+            pararScanner();
+            qrReaderDiv.style.display = 'none';
+            if (targetInput) {
+                targetInput.value = decodedText.toUpperCase(); // Padroniza para maiúsculo
+                mensagemStatusP.textContent = `Código ${decodedText} lido.`;
+                if (targetInput === etiquetaInput) {
+                    cavaleteInput.focus();
+                } else {
+                    btnAlocarPeca.focus();
+                }
+                targetInput = null;
+            }
+        }
+
+        function onScanError(error) {
+            // console.warn(`QR error = ${error}`);
+             mensagemStatusP.textContent = `Aguardando leitura do QR Code...`;
+        }
+
+        function iniciarScan(inputAlvo, mensagem) {
+            targetInput = inputAlvo;
+            mensagemStatusP.textContent = mensagem;
+            qrReaderDiv.style.display = 'block';
+            iniciarScanner('qr-reader', onScanSuccess, onScanError);
+        }
+
+        btnEscanearPeca.addEventListener('click', () => {
+            iniciarScan(etiquetaInput, 'Aponte para o QR da PEÇA...');
+        });
+
+        btnEscanearCavalete.addEventListener('click', () => {
+            iniciarScan(cavaleteInput, 'Aponte para o QR do CAVALETE...');
+        });
+
+        btnAlocarPeca.addEventListener('click', () => {
+            const idPeca = etiquetaInput.value.trim().toUpperCase();
+            const idCavalete = cavaleteInput.value.trim().toUpperCase();
+            const cavaletesCadastrados = obterCavaletes();
+
+            if (idPeca && idCavalete) {
+                if (!cavaletesCadastrados.includes(idCavalete)) {
+                    alert(`ERRO: O cavalete "${idCavalete}" não está cadastrado.`);
+                    cavaleteInput.focus();
+                    cavaleteInput.select();
+                    mensagemStatusP.style.color = '#dc3545';
+                    mensagemStatusP.textContent = `Cavalete ${idCavalete} inválido!`;
+                    return;
+                }
+
+                alocarPeca(idPeca, idCavalete);
+                mensagemStatusP.style.color = '#28a745';
+                mensagemStatusP.textContent = `Peça ${idPeca} alocada no cavalete ${idCavalete}!`;
+                etiquetaInput.value = '';
+                cavaleteInput.value = '';
+                carregarRecentes();
+                etiquetaInput.focus();
+            } else {
+                alert('Preencha a Etiqueta e o Cavalete antes de alocar.');
+                 mensagemStatusP.style.color = '#dc3545';
+                 mensagemStatusP.textContent = `Dados incompletos!`;
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', carregarRecentes);
+    </script>
+</body>
+</html>

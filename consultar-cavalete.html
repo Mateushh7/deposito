@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultar Cavalete</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+         #qr-reader-consulta { display: none; } /* Escondido por padrão */
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Consultar Cavalete (Carregamento)</h1>
+        <a href="index.html">Voltar</a>
+    </header>
+
+    <main class="container">
+        <div class="panel">
+            <h2>Selecionar Cavalete</h2>
+            <div class="input-group">
+                <label for="cavaleteIdConsulta">ID do Cavalete:</label>
+                <input type="text" id="cavaleteIdConsulta" placeholder="Digite ou escaneie o cavalete">
+                <button id="btnEscanearConsulta">Escanear</button>
+            </div>
+            <button id="btnConsultarCavalete">Consultar Cavalete</button>
+            <p id="mensagemConsulta">Aguardando consulta...</p>
+            <div id="qr-reader-consulta"></div>
+        </div>
+
+        <div class="panel">
+            <h2>Peças no Cavalete: <span id="cavaleteAtual">-</span></h2>
+            <ul id="listaPecasCavalete">
+                </ul>
+            <p class="summary">Total de Peças: <span id="totalPecas">0</span></p>
+        </div>
+    </main>
+
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="js/main.js"></script>
+    <script src="js/qrcode-scanner.js"></script>
+    <script>
+        const cavaleteInput = document.getElementById('cavaleteIdConsulta');
+        const btnEscanear = document.getElementById('btnEscanearConsulta');
+        const btnConsultar = document.getElementById('btnConsultarCavalete');
+        const mensagemP = document.getElementById('mensagemConsulta');
+        const qrReaderDiv = document.getElementById('qr-reader-consulta');
+        const listaPecasUl = document.getElementById('listaPecasCavalete');
+        const cavaleteAtualSpan = document.getElementById('cavaleteAtual');
+        const totalPecasSpan = document.getElementById('totalPecas');
+        let targetConsultaInput = null;
+
+        function onScanConsultaSuccess(decodedText) {
+            pararScanner();
+            qrReaderDiv.style.display = 'none';
+            if (targetConsultaInput) {
+                targetConsultaInput.value = decodedText.toUpperCase();
+                mensagemP.textContent = `Cavalete ${decodedText} lido. Consultando...`;
+                targetConsultaInput = null;
+                consultar();
+            }
+        }
+
+        function onScanConsultaError(error) {
+             mensagemP.textContent = `Aguardando leitura do QR Code...`;
+        }
+
+        function iniciarScanConsulta() {
+            targetConsultaInput = cavaleteInput;
+            mensagemP.textContent = 'Aponte para o QR do CAVALETE...';
+            qrReaderDiv.style.display = 'block';
+            iniciarScanner('qr-reader-consulta', onScanConsultaSuccess, onScanConsultaError);
+        }
+
+        function consultar() {
+            const idCavalete = cavaleteInput.value.trim().toUpperCase();
+            listaPecasUl.innerHTML = '';
+            cavaleteAtualSpan.textContent = '-';
+            totalPecasSpan.textContent = '0';
+            mensagemP.style.color = '#007bff';
+
+            if (!idCavalete) {
+                mensagemP.textContent = 'Digite ou escaneie um ID de cavalete.';
+                return;
+            }
+
+            const alocacoes = obterAlocacoes();
+            const pecasNoCavalete = [];
+            for (const peca in alocacoes) {
+                if (alocacoes[peca] === idCavalete) {
+                    pecasNoCavalete.push(peca);
+                }
+            }
+
+            cavaleteAtualSpan.textContent = idCavalete;
+            totalPecasSpan.textContent = pecasNoCavalete.length;
+
+            if (pecasNoCavalete.length > 0) {
+                pecasNoCavalete.sort().forEach(peca => { // Ordena as peças
+                    const li = document.createElement('li');
+                    const spanTexto = document.createElement('span');
+                    spanTexto.textContent = peca;
+
+                    const btnExcluir = document.createElement('button');
+                    btnExcluir.textContent = 'Excluir';
+                    btnExcluir.onclick = function() {
+                        if (confirm(`Tem certeza que deseja remover a peça "${peca}" do cavalete ${idCavalete}?`)) {
+                            removerPeca(peca);
+                            consultar(); // Atualiza a lista
+                        }
+                    };
+
+                    li.appendChild(spanTexto);
+                    li.appendChild(btnExcluir);
+                    listaPecasUl.appendChild(li);
+                });
+                mensagemP.textContent = `${pecasNoCavalete.length} peça(s) encontrada(s).`;
+            } else {
+                mensagemP.textContent = `Nenhuma peça encontrada para o cavalete ${idCavalete}.`;
+            }
+        }
+
+        btnEscanear.addEventListener('click', iniciarScanConsulta);
+        btnConsultar.addEventListener('click', consultar);
+
+        cavaleteInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                consultar();
+            }
+        });
+
+        // Limpa a tela ao carregar para começar do zero
+        document.addEventListener('DOMContentLoaded', () => {
+             cavaleteInput.value = '';
+             consultar();
+             cavaleteInput.focus();
+        });
+    </script>
+</body>
+</html>

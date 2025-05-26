@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visão Geral do Depósito</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Estilos específicos para a visão geral */
+        #overview-container {
+            display: grid;
+            /* Cria colunas responsivas: preenche com o máximo de colunas
+               de 300px que couberem, distribuindo o espaço. */
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px; /* Espaço entre os cards */
+        }
+
+        .cavalete-card {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column; /* Organiza conteúdo verticalmente */
+        }
+
+        .cavalete-card h3 {
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #6c757d; /* Borda cinza */
+            color: #343a40;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.3em;
+        }
+
+        /* Badge para contagem de peças */
+        .cavalete-card h3 span {
+            background-color: #007bff; /* Azul */
+            color: #fff;
+            font-size: 0.7em;
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+
+        .cavalete-card ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 15px 0 0 0;
+            max-height: 250px;
+            overflow-y: auto;
+            border: none;
+            background: none;
+            flex-grow: 1; /* Faz a lista ocupar espaço disponível */
+        }
+
+        .cavalete-card ul li {
+            padding: 10px 5px;
+            font-size: 1em;
+            border-bottom: 1px dotted #f0f0f0; /* Linha pontilhada */
+            background: none;
+            justify-content: flex-start;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .cavalete-card ul li:last-child {
+            border-bottom: none;
+        }
+
+        .cavalete-card .vazio {
+            color: #6c757d; /* Cinza */
+            font-style: italic;
+            text-align: center;
+            padding: 30px 0;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+         #mensagem-geral {
+            font-size: 1.2em;
+            text-align: center;
+            padding: 30px;
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Visão Geral do Depósito</h1>
+        <a href="index.html">Voltar</a>
+    </header>
+    <main>
+        <div id="overview-container">
+            <p id="mensagem-geral">Carregando dados...</p>
+        </div>
+    </main>
+
+    <script src="js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('overview-container');
+            const mensagemGeral = document.getElementById('mensagem-geral');
+            const cavaletes = obterCavaletes();
+            const alocacoes = obterAlocacoes();
+
+            // Limpa o container inicial
+            container.innerHTML = '';
+
+            // 1. Agrupar peças por cavalete
+            const pecasPorCavalete = {};
+            for (const peca in alocacoes) {
+                const cavalete = alocacoes[peca];
+                // Se o cavalete não existe mais (foi removido), não considera a peça
+                if (cavaletes.includes(cavalete)) {
+                    if (!pecasPorCavalete[cavalete]) {
+                        pecasPorCavalete[cavalete] = [];
+                    }
+                    pecasPorCavalete[cavalete].push(peca);
+                }
+            }
+
+            // 2. Exibir cada cavalete cadastrado
+            if (cavaletes.length === 0) {
+                 mensagemGeral.textContent = 'Nenhum cavalete cadastrado ainda.';
+                 container.appendChild(mensagemGeral);
+                 return;
+            }
+
+            cavaletes.sort().forEach(cavaleteId => {
+                const card = document.createElement('div');
+                card.className = 'cavalete-card';
+
+                const header = document.createElement('h3');
+                const countBadge = document.createElement('span');
+
+                const pecas = pecasPorCavalete[cavaleteId] || [];
+                countBadge.textContent = `${pecas.length} pçs`;
+                header.textContent = cavaleteId + ' ';
+                header.appendChild(countBadge);
+
+                card.appendChild(header);
+
+                if (pecas.length > 0) {
+                    const ul = document.createElement('ul');
+                    pecas.sort().forEach(pecaId => {
+                        const li = document.createElement('li');
+                        li.textContent = pecaId;
+                        ul.appendChild(li);
+                    });
+                    card.appendChild(ul);
+                } else {
+                    const p = document.createElement('p');
+                    p.className = 'vazio';
+                    p.textContent = '(Vazio)';
+                    card.appendChild(p);
+                }
+                container.appendChild(card);
+            });
+        });
+    </script>
+</body>
+</html>

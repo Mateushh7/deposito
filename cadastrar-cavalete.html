@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastrar Cavalete</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .panel { max-width: 500px; margin: 20px auto; }
+        #listaCavaletes li button {
+            background-color: #dc3545 !important;
+            padding: 3px 8px !important;
+            font-size: 0.75em !important;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Cadastrar Novo Cavalete</h1>
+        <a href="index.html">Voltar</a>
+    </header>
+    <main>
+        <div class="panel">
+             <h2>Adicionar / Listar Cavaletes</h2>
+            <section class="input-group">
+                <label for="cavaleteId">ID do Novo Cavalete:</label>
+                <input type="text" id="cavaleteId" placeholder="Ex: CVL-A-01">
+                <button id="btnAdicionarCavalete">Adicionar</button>
+            </section>
+            <section>
+                <h2>Cavaletes Cadastrados</h2>
+                <ul id="listaCavaletes">
+                    </ul>
+            </section>
+        </div>
+    </main>
+    <script src="js/main.js"></script>
+    <script>
+        const cavaleteIdInput = document.getElementById('cavaleteId');
+        const btnAdicionarCavalete = document.getElementById('btnAdicionarCavalete');
+        const listaCavaletesUl = document.getElementById('listaCavaletes');
+
+        function carregarCavaletesListagem() {
+            const cavaletes = obterCavaletes();
+            listaCavaletesUl.innerHTML = ''; // Limpa a lista atual
+            cavaletes.forEach(cavalete => {
+                const li = document.createElement('li');
+                const span = document.createElement('span');
+                span.textContent = cavalete;
+
+                const btnRemover = document.createElement('button');
+                btnRemover.textContent = 'Remover';
+                btnRemover.onclick = function() {
+                    // Adiciona confirmação antes de remover cavalete
+                    if (confirm(`Tem certeza que deseja remover o cavalete "${cavalete}"? \nATENÇÃO: Isso NÃO remove as peças associadas a ele.`)) {
+                       removerCavalete(cavalete);
+                       carregarCavaletesListagem(); // Recarrega a lista
+                    }
+                };
+
+                li.appendChild(span);
+                li.appendChild(btnRemover);
+                listaCavaletesUl.appendChild(li);
+            });
+            listaCavaletesUl.parentNode.querySelector('h2').textContent = `Cavaletes Cadastrados (${cavaletes.length})`;
+        }
+
+        btnAdicionarCavalete.addEventListener('click', () => {
+            const id = cavaleteIdInput.value.trim().toUpperCase(); // Converte para maiúsculo para padronizar
+            if (id) {
+                adicionarCavalete(id);
+                cavaleteIdInput.value = ''; // Limpa o input
+                cavaleteIdInput.focus();
+                carregarCavaletesListagem(); // Recarrega a lista
+            } else {
+                alert('Por favor, insira um ID para o cavalete.');
+            }
+        });
+
+        // Adiciona ao pressionar Enter
+        cavaleteIdInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                btnAdicionarCavalete.click();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', carregarCavaletesListagem);
+    </script>
+</body>
+</html>
