@@ -4,6 +4,38 @@ const RACKS_KEY = 'cavaletes';
 const ALLOCATIONS_KEY = 'alocacoesPecas';
 
 /**
+ * Processa o ID da peça lido do QR Code ou digitado.
+ * Pega os últimos 14 caracteres, IGNORA OS 2 ÚLTIMOS (resultando em 12),
+ * e substitui D por -, A por . e B por /.
+ * @param {string} idOriginal - O ID da peça original.
+ * @returns {string} O ID da peça processado.
+ */
+function processarIdPeca(idOriginal) {
+    if (!idOriginal) {
+        return ''; // Retorna vazio se a entrada for nula ou vazia
+    }
+
+    let idProcessado = idOriginal.trim().toUpperCase(); // Remove espaços e garante maiúsculas
+
+    // 1. Pega os últimos 14 caracteres (se o ID for maior que 14)
+    if (idProcessado.length > 14) {
+        idProcessado = idProcessado.slice(-14);
+    }
+
+    // 2. *** NOVO: IGNORA os últimos 2 caracteres ***
+    idProcessado = idProcessado.slice(0, -2);
+
+    // 3. Faz as substituições (usando /g para substituir todas as ocorrências)
+    idProcessado = idProcessado.replace(/D/g, '-')
+                             .replace(/A/g, '.')
+                             .replace(/B/g, '/');
+
+    console.log(`ID Original: ${idOriginal} -> Processado (sem 2 ultimos): ${idProcessado}`);
+    return idProcessado;
+}
+
+
+/**
  * Obtém a lista de cavaletes cadastrados.
  * @returns {string[]} Array com os IDs dos cavaletes.
  */
@@ -28,7 +60,7 @@ function adicionarCavalete(idCavalete) {
 }
 
 /**
- * Remove um cavalete da lista. (Opcional, mas útil)
+ * Remove um cavalete da lista.
  * @param {string} idCavalete - O ID do cavalete a ser removido.
  */
 function removerCavalete(idCavalete) {
@@ -49,7 +81,7 @@ function obterAlocacoes() {
 
 /**
  * Aloca uma peça a um cavalete.
- * @param {string} idPeca - O ID da peça.
+ * @param {string} idPeca - O ID da peça (JÁ PROCESSADO).
  * @param {string} idCavalete - O ID do cavalete.
  */
 function alocarPeca(idPeca, idCavalete) {
@@ -61,7 +93,7 @@ function alocarPeca(idPeca, idCavalete) {
 
 /**
  * Remove a alocação de uma peça.
- * @param {string} idPeca - O ID da peça a ser removida.
+ * @param {string} idPeca - O ID da peça a ser removida (JÁ PROCESSADO).
  * @returns {boolean} True se a peça foi removida, false caso contrário.
  */
 function removerPeca(idPeca) {
@@ -78,7 +110,7 @@ function removerPeca(idPeca) {
 
 /**
  * Consulta a localização de uma peça.
- * @param {string} idPeca - O ID da peça.
+ * @param {string} idPeca - O ID da peça (JÁ PROCESSADO).
  * @returns {string | null} O ID do cavalete ou null se não encontrada.
  */
 function consultarLocalizacaoPeca(idPeca) {
