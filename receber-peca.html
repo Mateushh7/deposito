@@ -69,8 +69,17 @@
             pararScanner();
             qrReaderDiv.style.display = 'none';
             if (targetInput) {
-                targetInput.value = decodedText.toUpperCase(); // Padroniza para maiúsculo
+                let valorProcessado;
+                // *** APLICA O PROCESSAMENTO SE O ALVO FOR O INPUT DA PEÇA ***
+                if (targetInput === etiquetaInput) {
+                    valorProcessado = processarIdPeca(decodedText); // <--- MUDANÇA
+                } else {
+                    valorProcessado = decodedText.toUpperCase();
+                }
+
+                targetInput.value = valorProcessado;
                 mensagemStatusP.textContent = `Código ${decodedText} lido.`;
+
                 if (targetInput === etiquetaInput) {
                     cavaleteInput.focus();
                 } else {
@@ -81,7 +90,6 @@
         }
 
         function onScanError(error) {
-            // console.warn(`QR error = ${error}`);
              mensagemStatusP.textContent = `Aguardando leitura do QR Code...`;
         }
 
@@ -101,9 +109,12 @@
         });
 
         btnAlocarPeca.addEventListener('click', () => {
-            const idPeca = etiquetaInput.value.trim().toUpperCase();
+            // *** APLICA O PROCESSAMENTO AO PEGAR O VALOR ***
+            const idPeca = processarIdPeca(etiquetaInput.value); // <--- MUDANÇA
             const idCavalete = cavaleteInput.value.trim().toUpperCase();
             const cavaletesCadastrados = obterCavaletes();
+
+            etiquetaInput.value = idPeca; // Mostra o valor processado
 
             if (idPeca && idCavalete) {
                 if (!cavaletesCadastrados.includes(idCavalete)) {
@@ -115,7 +126,7 @@
                     return;
                 }
 
-                alocarPeca(idPeca, idCavalete);
+                alocarPeca(idPeca, idCavalete); // Salva o ID processado
                 mensagemStatusP.style.color = '#28a745';
                 mensagemStatusP.textContent = `Peça ${idPeca} alocada no cavalete ${idCavalete}!`;
                 etiquetaInput.value = '';
