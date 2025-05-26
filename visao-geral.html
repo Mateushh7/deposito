@@ -9,8 +9,6 @@
         /* Estilos específicos para a visão geral */
         #overview-container {
             display: grid;
-            /* Cria colunas responsivas: preenche com o máximo de colunas
-               de 300px que couberem, distribuindo o espaço. */
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 25px; /* Espaço entre os cards */
         }
@@ -111,14 +109,11 @@
             const cavaletes = obterCavaletes();
             const alocacoes = obterAlocacoes();
 
-            // Limpa o container inicial
             container.innerHTML = '';
 
-            // 1. Agrupar peças por cavalete
             const pecasPorCavalete = {};
             for (const peca in alocacoes) {
                 const cavalete = alocacoes[peca];
-                // Se o cavalete não existe mais (foi removido), não considera a peça
                 if (cavaletes.includes(cavalete)) {
                     if (!pecasPorCavalete[cavalete]) {
                         pecasPorCavalete[cavalete] = [];
@@ -127,7 +122,6 @@
                 }
             }
 
-            // 2. Exibir cada cavalete cadastrado
             if (cavaletes.length === 0) {
                  mensagemGeral.textContent = 'Nenhum cavalete cadastrado ainda.';
                  container.appendChild(mensagemGeral);
@@ -137,22 +131,19 @@
             cavaletes.sort().forEach(cavaleteId => {
                 const card = document.createElement('div');
                 card.className = 'cavalete-card';
-
                 const header = document.createElement('h3');
                 const countBadge = document.createElement('span');
-
                 const pecas = pecasPorCavalete[cavaleteId] || [];
                 countBadge.textContent = `${pecas.length} pçs`;
                 header.textContent = cavaleteId + ' ';
                 header.appendChild(countBadge);
-
                 card.appendChild(header);
 
                 if (pecas.length > 0) {
                     const ul = document.createElement('ul');
                     pecas.sort().forEach(pecaId => {
                         const li = document.createElement('li');
-                        li.textContent = pecaId;
+                        li.textContent = pecaId; // Exibe o ID já processado
                         ul.appendChild(li);
                     });
                     card.appendChild(ul);
